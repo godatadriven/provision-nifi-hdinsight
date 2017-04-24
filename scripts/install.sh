@@ -1,7 +1,7 @@
 #!/bin/bash
 INIT_FOLDER=`pwd`
 NIFI_VERSION=nifi-1.1.2
-NGINX_CONF=...
+NGINX_CONF=https://raw.githubusercontent.com/godatadriven/provision-nifi-hdinsight/master/scripts/nifi_nginx.conf
 NIFI_HOME=/opt/nifi
 HADOOP_CORE_CONF=/etc/hadoop/conf/core-site.xml
 

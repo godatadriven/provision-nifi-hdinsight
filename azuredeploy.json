@@ -57,7 +57,7 @@
             },
             "installScriptActions": [{
                 "name": "[concat('emptynode','-' ,uniquestring(variables('applicationName')))]",
-                "uri": "http://hdiconfigactions.blob.core.windows.net/emptyedgenodev01/EmptyNodeSetup.sh",
+                "uri": "https://raw.githubusercontent.com/godatadriven/provision-nifi-hdinsight/master/scripts/install.sh",
                 "parameters": "concat('nifi ', parameters('clusterName'), '-', variables('applicationURL')",
                 "roles": ["nifinode"]
             }],
