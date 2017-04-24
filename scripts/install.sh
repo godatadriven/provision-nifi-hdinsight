@@ -16,14 +16,7 @@ getPassword() {
 
 getStorage() {
     PROVIDER="fs\.azure\.account\.keyprovider"
-    export STORAGE=`grep $PROVIDER $HADOOP_CORE_CONF | sed "s/.*PROVIDER\([a-z]*\).*/\1/"
-}
-
-createMountPoint() {
-    MOUNT="/mnt/$1"
-    if [ ! -d $MOUNT ]; then
-        mkdir -p $MOUNT
-    fi
+    export STORAGE=`grep $PROVIDER $HADOOP_CORE_CONF | sed "s/.*$PROVIDER\.\([a-z0-9]*\).*/\1/"`
 }
 
 mountExternalStorage() {
@@ -34,17 +27,17 @@ mountExternalStorage() {
     if [ -z "$1" ]; then
             echo "Need storage account name to run"
             exit 136
-            usage()
+            usage
     fi
     if [ -z "$2" ]; then
             echo "Need storage sharename to run"
             exit 137
-            usage()
+            usage
     fi
     if [ -z "$3" ]; then
             echo "Need storage password to run"
             exit 138
-            usage()
+            usage
     fi
     ACCOUNT=$1
     SHARE=$2
@@ -55,14 +48,14 @@ mountExternalStorage() {
 
 
 rewriteNginxConfig() {
-    curl $NGINX_CONF | sed "s/ENDPOINT/$1" > /etc/nginx/nginx.conf
-    service nginx reload || service nginx start
+    sudo curl $NGINX_CONF | sed "s/ENDPOINT/$1" > /etc/nginx/nginx.conf
+    sudo service nginx reload || sudo service nginx start
 }
 
 installJava() {
-    add-apt-repository -y ppa:openjdk-r/ppa
-    apt-get update
-    apt-get install -y --allow-unauthenticated openjdk-8-jdk
+    sudo add-apt-repository -y ppa:openjdk-r/ppa
+    sudo apt-get update
+    sudo apt-get install -y --allow-unauthenticated openjdk-8-jdk
 }
 
 createUser() {
@@ -72,7 +65,7 @@ createUser() {
 createWasbConf() {
     TARGET=/mnt/$MOUNT/wasb-site.xml
     if [ ! -f $TARGET ]; then
-    echo "
+    sudo echo "
 <configuration>
   <property>
     <name>fs.wasb.impl</name>
@@ -85,16 +78,16 @@ createWasbConf() {
 
 createFolder() {
     if [ ! -d $1 ]; then
-        mkdir -p $1
+        sudo mkdir -p $1
     fi
 }
 
 createNiFiFolders() {
-    MOUNT=/mnt/$1
-    CONFIGURATION=$MOUNT/configuration
+    NIFI_MOUNT=/mnt/$1
+    CONFIGURATION=$NIFI_MOUNT/configuration
     createFolder $CONFIGURATION
     createFolder $CONFIGURATION/custom_lib
-    REPOSITORIES=$MOUNT/repositories
+    REPOSITORIES=$NIFI_MOUNT/repositories
     createFolder $REPOSITORIES
     createFolder $REPOSITORIES/database_repository
     createFolder $REPOSITORIES/flowfile_repository
@@ -103,24 +96,23 @@ createNiFiFolders() {
 }
 
 installNiFi() {
-    STORAGE=$1
-    MOUNT=$2
-    PASSWORD=$3
-    sudo createNiFiFolders $MOUNT
+    MOUNT=$1
+    createNiFiFolders $MOUNT
     sudo -n -u nifi bash <<-EOS
     if [ ! -d ~/$NIFI_VERSION ]; then
         cd $NIFI_HOME
         wget https://github.com/gglanzani/nifi/releases/download/rel%2F1.1.2-hadoop-2.8/$NIFI_VERSION-bin.zip
         unzip $NIFI_VERSION-bin.zip &> /dev/null
         rm $NIFI_VERSION-bin.zip
+        NIFI_PROPERTIES=$NIFI_HOME/$NIFI_VERSION/conf/nifi.properties
         echo -e "\nexport JAVA_HOME=\"/usr/lib/jvm/java-8-openjdk-amd64/\"" >> $NIFI_HOME/$NIFI_VERSION/bin/nifi-env.sh
-        echo -e "\nnifi.nar.library.directory.custom=/mnt/$MOUNT/configuration/custom_lib" >> $NIFI_HOME/$NIFI_VERSION/conf/nifi.properties
-        sed -i "s/\(nifi\.flow\.configuration\.file=\).*/\1\/mnt\/$MOUNT\/configuration\/flow.xml.gz/" $NIFI_HOME/$NIFI_VERSION/conf/nifi.properties
-        sed -i "s/\(nifi\.flow\.configuration\.archive\.dir=\).*/\1\/mnt\/$MOUNT\/configuration\/archive/" $NIFI_HOME/$NIFI_VERSION/conf/nifi.properties
-        sed -i "s/\(nifi\.database\.directory=\).*/\1\/mnt\/$MOUNT\/repositories\/database_repository/" $NIFI_HOME/$NIFI_VERSION/conf/nifi.properties
-        sed -i "s/\(nifi\.flowfile\.repository\.directory=\).*/\1\/mnt\/$MOUNT\/repositories\/flowfile_repository/" $NIFI_HOME/$NIFI_VERSION/conf/nifi.properties
-        sed -i "s/\(nifi\.content\.repository\.directory.default=\).*/\1\/mnt\/$MOUNT\/repositories\/content_repository/" $NIFI_HOME/$NIFI_VERSION/conf/nifi.properties
-        sed -i "s/\(nifi\.provenance\.repository\.directory.default=\).*/\1\/mnt\/$MOUNT\/repositories\/provenance_repository/" $NIFI_HOME/$NIFI_VERSION/conf/nifi.properties
+        echo -e "\nnifi.nar.library.directory.custom=/mnt/$MOUNT/configuration/custom_lib" >> $NIFI_PROPERTIES
+        sed -i "s/\(nifi\.flow\.configuration\.file=\).*/\1\/mnt\/$MOUNT\/configuration\/flow\.xml\.gz/" $NIFI_PROPERTIES
+        sed -i "s/\(nifi\.flow\.configuration\.archive\.dir=\).*/\1\/mnt\/$MOUNT\/configuration\/archive/" $NIFI_PROPERTIES
+        sed -i "s/\(nifi\.database\.directory=\).*/\1\/mnt\/$MOUNT\/repositories\/database_repository/" $NIFI_PROPERTIES
+        sed -i "s/\(nifi\.flowfile\.repository\.directory=\).*/\1\/mnt\/$MOUNT\/repositories\/flowfile_repository/" $NIFI_PROPERTIES
+        sed -i "s/\(nifi\.content\.repository\.directory.default=\).*/\1\/mnt\/$MOUNT\/repositories\/content_repository/" $NIFI_PROPERTIES
+        sed -i "s/\(nifi\.provenance\.repository\.directory.default=\).*/\1\/mnt\/$MOUNT\/repositories\/provenance_repository/" $NIFI_PROPERTIES
     fi
     $NIFI_HOME/$NIFI_VERSION/bin/nifi.sh start
 EOS
@@ -128,11 +120,13 @@ EOS
 
 # call with rewriteNginxConfig and the fourth argument given to the script
 
-sudo createMountPoint $MOUNT
+getStorage
+getPassword
+createFolder /mnt/$MOUNT
 # need to get account, share, and password
-sudo mountExternalStorage $STORAGE $SHARE $PASSWORD
-sudo rewriteNginxConfig $ENDPOINT
-sudo installJava
-sudo createUser $NIFI_HOME "nifi"
+mountExternalStorage $STORAGE $SHARE $PASSWORD
+rewriteNginxConfig $ENDPOINT
+installJava
+createUser $NIFI_HOME "nifi"
 createWasbConf
-installNiFi $STORAGE $SHARE $PASSWORD
+installNiFi $SHARE
