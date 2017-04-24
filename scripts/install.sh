@@ -118,12 +118,10 @@ installNiFi() {
 EOS
 }
 
-# call with rewriteNginxConfig and the fourth argument given to the script
 
 getStorage
 getPassword
 createFolder /mnt/$MOUNT
-# need to get account, share, and password
 mountExternalStorage $STORAGE $SHARE $PASSWORD
 rewriteNginxConfig $ENDPOINT
 installJava
