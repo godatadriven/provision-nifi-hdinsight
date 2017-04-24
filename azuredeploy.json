@@ -1,0 +1,79 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "clusterName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the existing HDInsight cluster"
+            }
+        },
+        "nifiNodeSize": {
+            "type": "string",
+            "metadata": {
+                "description": "Size of the NiFi node. Use a recommedned VM size for worker nodes."
+            },
+            "defaultValue": "Standard_D3_v2",
+            "allowedValues": [
+                "Standard_D3_v2",
+                "Standard_D4_v2",
+                "Standard_D12_v2"
+            ]
+        },
+        "nifiNodePrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "NiFi node prefix"
+            },
+            "defaultValue": "nifi"
+        },
+        "storageName": {
+            "type": "string",
+            "metadata": {
+                "description": "Storage name for blobs and files"
+            }
+        }
+    },
+    "variables": {
+        "clusterApiVersion": "2015-03-01-preview",
+        "applicationName": "[parameters('nifiNodePrefix')]",
+        "applicationURL": "nfi"
+    },
+    "resources": [{
+        "name": "[concat(parameters('clusterName'),'/', variables('applicationName'))]",
+        "type": "Microsoft.HDInsight/clusters/applications",
+        "apiVersion": "[variables('clusterApiVersion')]",
+        "comments" : "The script below is a copy of the script in the Iaas-Applications github repository",
+        "properties": {
+            "marketPlaceIdentifier": "EmptyNode",
+            "computeProfile": {
+                "roles": [{
+                    "name": "nifinode",
+                    "targetInstanceCount": 1,
+                    "hardwareProfile": {
+                        "vmSize": "[parameters('nifiNodeSize')]"
+                    }
+                }]
+            },
+            "installScriptActions": [{
+                "name": "[concat('emptynode','-' ,uniquestring(variables('applicationName')))]",
+                "uri": "http://hdiconfigactions.blob.core.windows.net/emptyedgenodev01/EmptyNodeSetup.sh",
+                "parameters": "concat('nifi ', parameters('clusterName'), '-', variables('applicationURL')",
+                "roles": ["nifinode"]
+            }],
+            "uninstallScriptActions": [],
+            "httpsEndpoints": [{
+              "subDomainSuffix": "variables('applicationURL')",
+              "destinationPort": 9999,
+              "accessModes": ["webpage"]
+            }],
+            "applicationType": "CustomApplication"
+        }
+    }],
+    "outputs": {
+        "application": {
+            "type": "object",
+            "value": "[reference(resourceId('Microsoft.HDInsight/clusters/applications/',parameters('clusterName'), variables('applicationName')))]"
+        }
+    }
+}
