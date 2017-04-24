@@ -26,12 +26,6 @@
                 "description": "NiFi node prefix"
             },
             "defaultValue": "nifi"
-        },
-        "storageName": {
-            "type": "string",
-            "metadata": {
-                "description": "Storage name for blobs and files"
-            }
         }
     },
     "variables": {
