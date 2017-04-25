@@ -99,20 +99,19 @@ installNiFi() {
     MOUNT=$1
     createNiFiFolders $MOUNT
     sudo -n -u nifi bash <<-EOS
-    if [ ! -d ~/$NIFI_VERSION ]; then
+    if [ ! -d $NIFI_HOME/$NIFI_VERSION ]; then
         cd $NIFI_HOME
         wget https://github.com/gglanzani/nifi/releases/download/rel%2F1.1.2-hadoop-2.8/$NIFI_VERSION-bin.zip
         unzip $NIFI_VERSION-bin.zip &> /dev/null
         rm $NIFI_VERSION-bin.zip
-        export NIFI_PROPERTIES="$NIFI_HOME/$NIFI_VERSION/conf/nifi.properties"
         echo -e "\nexport JAVA_HOME=\"/usr/lib/jvm/java-8-openjdk-amd64/\"" >> $NIFI_HOME/$NIFI_VERSION/bin/nifi-env.sh
         echo -e "\nnifi.nar.library.directory.custom=/mnt/$MOUNT/configuration/custom_lib" >> $NIFI_HOME/$NIFI_VERSION/conf/nifi.properties
-        sed -i "s/\(nifi\.flow\.configuration\.file=\).*/\1\/mnt\/$MOUNT\/configuration\/flow\.xml\.gz/" $NIFI_PROPERTIES
-        sed -i "s/\(nifi\.flow\.configuration\.archive\.dir=\).*/\1\/mnt\/$MOUNT\/configuration\/archive/" $NIFI_PROPERTIES
-        sed -i "s/\(nifi\.database\.directory=\).*/\1\/mnt\/$MOUNT\/repositories\/database_repository/" $NIFI_PROPERTIES
-        sed -i "s/\(nifi\.flowfile\.repository\.directory=\).*/\1\/mnt\/$MOUNT\/repositories\/flowfile_repository/" $NIFI_PROPERTIES
-        sed -i "s/\(nifi\.content\.repository\.directory.default=\).*/\1\/mnt\/$MOUNT\/repositories\/content_repository/" $NIFI_PROPERTIES
-        sed -i "s/\(nifi\.provenance\.repository\.directory.default=\).*/\1\/mnt\/$MOUNT\/repositories\/provenance_repository/" $NIFI_PROPERTIES
+        sed -i "s/\(nifi\.flow\.configuration\.file=\).*/\1\/mnt\/$MOUNT\/configuration\/flow\.xml\.gz/" $NIFI_HOME/$NIFI_VERSION/conf/nifi.properties
+        sed -i "s/\(nifi\.flow\.configuration\.archive\.dir=\).*/\1\/mnt\/$MOUNT\/configuration\/archive/" $NIFI_HOME/$NIFI_VERSION/conf/nifi.properties
+        sed -i "s/\(nifi\.database\.directory=\).*/\1\/mnt\/$MOUNT\/repositories\/database_repository/" $NIFI_HOME/$NIFI_VERSION/conf/nifi.properties
+        sed -i "s/\(nifi\.flowfile\.repository\.directory=\).*/\1\/mnt\/$MOUNT\/repositories\/flowfile_repository/" $NIFI_HOME/$NIFI_VERSION/conf/nifi.properties
+        sed -i "s/\(nifi\.content\.repository\.directory.default=\).*/\1\/mnt\/$MOUNT\/repositories\/content_repository/" $NIFI_HOME/$NIFI_VERSION/conf/nifi.properties
+        sed -i "s/\(nifi\.provenance\.repository\.directory.default=\).*/\1\/mnt\/$MOUNT\/repositories\/provenance_repository/" $NIFI_HOME/$NIFI_VERSION/conf/nifi.properties
     fi
     $NIFI_HOME/$NIFI_VERSION/bin/nifi.sh start
 EOS
