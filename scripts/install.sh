@@ -48,7 +48,7 @@ mountExternalStorage() {
 
 
 rewriteNginxConfig() {
-    sudo curl $NGINX_CONF | sed "s/ENDPOINT/$1" > /etc/nginx/nginx.conf
+    curl $NGINX_CONF | sed "s/ENDPOINT/$1" | sudo tee /etc/nginx/nginx.conf > /dev/null
     sudo service nginx reload || sudo service nginx start
 }
 
