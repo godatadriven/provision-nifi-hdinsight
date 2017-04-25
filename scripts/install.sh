@@ -5,9 +5,8 @@ NGINX_CONF="https://raw.githubusercontent.com/godatadriven/provision-nifi-hdinsi
 NIFI_HOME="/opt/nifi"
 HADOOP_CORE_CONF="/etc/hadoop/conf/core-site.xml"
 
-SHARE=$1
+SHARE="nifi"
 MOUNT=$SHARE
-ENDPOINT=$2
 
 getPassword() {
     KEY=`grep -A1 "fs\.azure\.account\.key\." $HADOOP_CORE_CONF | grep "<value>" | sed 's/ *//;s/<[^>]*>//g'`
@@ -18,6 +17,11 @@ getStorage() {
     PROVIDER="fs\.azure\.account\.keyprovider"
     export STORAGE=`grep $PROVIDER $HADOOP_CORE_CONF | sed "s/.*$PROVIDER\.\([a-z0-9]*\).*/\1/"`
 }
+
+getClusterName() {
+    export CLUSTERNAME=$(echo -e "import hdinsight_common.ClusterManifestParser as ClusterManifestParser\nprint ClusterManifestParser.parse_local_manifest().deployment.cluster_name" | python)
+}
+
 
 mountExternalStorage() {
     usage() {
@@ -120,6 +124,8 @@ EOS
 
 getStorage
 getPassword
+getClusterName
+ENDPOINT=$CLUSTERNAME-nfi
 createFolder /mnt/$MOUNT
 mountExternalStorage $STORAGE $SHARE $PASSWORD
 rewriteNginxConfig $ENDPOINT
