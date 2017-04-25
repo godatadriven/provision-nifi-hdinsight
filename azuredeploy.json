@@ -52,7 +52,7 @@
             "installScriptActions": [{
                 "name": "[concat('edgenode','-' ,uniquestring(variables('applicationName')))]",
                 "uri": "https://raw.githubusercontent.com/godatadriven/provision-nifi-hdinsight/master/scripts/install.sh",
-                "parameters": "concat('nifi ', parameters('clusterName'), '-', variables('applicationURL')",
+                "parameters": "concat('nifi ', parameters('clusterName'), '-', variables('applicationURL'))",
                 "roles": ["edgenode"]
             }],
             "uninstallScriptActions": [],
