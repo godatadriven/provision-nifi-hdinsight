@@ -50,14 +50,14 @@
                 }]
             },
             "installScriptActions": [{
-                "name": "[concat('emptynode','-' ,uniquestring(variables('applicationName')))]",
+                "name": "[concat('nifinode','-' ,uniquestring(variables('applicationName')))]",
                 "uri": "https://raw.githubusercontent.com/godatadriven/provision-nifi-hdinsight/master/scripts/install.sh",
                 "parameters": "concat('nifi ', parameters('clusterName'), '-', variables('applicationURL')",
                 "roles": ["nifinode"]
             }],
             "uninstallScriptActions": [],
             "httpsEndpoints": [{
-              "subDomainSuffix": "variables('applicationURL')",
+              "subDomainSuffix": "nfi",
               "destinationPort": 9999,
               "accessModes": ["webpage"]
             }],
