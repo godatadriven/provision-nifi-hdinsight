@@ -42,7 +42,7 @@
             "marketPlaceIdentifier": "EmptyNode",
             "computeProfile": {
                 "roles": [{
-                    "name": "nifinode",
+                    "name": "edgenode",
                     "targetInstanceCount": 1,
                     "hardwareProfile": {
                         "vmSize": "[parameters('nifiNodeSize')]"
@@ -50,10 +50,10 @@
                 }]
             },
             "installScriptActions": [{
-                "name": "[concat('nifinode','-' ,uniquestring(variables('applicationName')))]",
+                "name": "[concat('edgenode','-' ,uniquestring(variables('applicationName')))]",
                 "uri": "https://raw.githubusercontent.com/godatadriven/provision-nifi-hdinsight/master/scripts/install.sh",
                 "parameters": "concat('nifi ', parameters('clusterName'), '-', variables('applicationURL')",
-                "roles": ["nifinode"]
+                "roles": ["edgenode"]
             }],
             "uninstallScriptActions": [],
             "httpsEndpoints": [{
