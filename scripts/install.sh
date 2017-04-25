@@ -1,9 +1,9 @@
 #!/bin/bash
 INIT_FOLDER=`pwd`
 NIFI_VERSION=nifi-1.1.2
-NGINX_CONF=https://raw.githubusercontent.com/godatadriven/provision-nifi-hdinsight/master/scripts/nifi_nginx.conf
-NIFI_HOME=/opt/nifi
-HADOOP_CORE_CONF=/etc/hadoop/conf/core-site.xml
+NGINX_CONF="https://raw.githubusercontent.com/godatadriven/provision-nifi-hdinsight/master/scripts/nifi_nginx.conf"
+NIFI_HOME="/opt/nifi"
+HADOOP_CORE_CONF="/etc/hadoop/conf/core-site.xml"
 
 SHARE=$1
 MOUNT=$SHARE
@@ -104,9 +104,9 @@ installNiFi() {
         wget https://github.com/gglanzani/nifi/releases/download/rel%2F1.1.2-hadoop-2.8/$NIFI_VERSION-bin.zip
         unzip $NIFI_VERSION-bin.zip &> /dev/null
         rm $NIFI_VERSION-bin.zip
-        NIFI_PROPERTIES=$NIFI_HOME/$NIFI_VERSION/conf/nifi.properties
+        export NIFI_PROPERTIES="$NIFI_HOME/$NIFI_VERSION/conf/nifi.properties"
         echo -e "\nexport JAVA_HOME=\"/usr/lib/jvm/java-8-openjdk-amd64/\"" >> $NIFI_HOME/$NIFI_VERSION/bin/nifi-env.sh
-        echo -e "\nnifi.nar.library.directory.custom=/mnt/$MOUNT/configuration/custom_lib" >> $NIFI_PROPERTIES
+        echo -e "\nnifi.nar.library.directory.custom=/mnt/$MOUNT/configuration/custom_lib" >> $NIFI_HOME/$NIFI_VERSION/conf/nifi.properties
         sed -i "s/\(nifi\.flow\.configuration\.file=\).*/\1\/mnt\/$MOUNT\/configuration\/flow\.xml\.gz/" $NIFI_PROPERTIES
         sed -i "s/\(nifi\.flow\.configuration\.archive\.dir=\).*/\1\/mnt\/$MOUNT\/configuration\/archive/" $NIFI_PROPERTIES
         sed -i "s/\(nifi\.database\.directory=\).*/\1\/mnt\/$MOUNT\/repositories\/database_repository/" $NIFI_PROPERTIES
